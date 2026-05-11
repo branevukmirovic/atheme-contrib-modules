@@ -80,6 +80,15 @@ typedef char *stringref;
 
 #if (CURRENT_ABI_REVISION < 730000)
 
+// This function was introduced in the Atheme 7.3 development series
+static inline const char *
+int64_to_string(int64_t num)
+{
+	static char ret[32];
+	snprintf(ret, 32, "%lld", (long long)num);
+	return ret;
+}
+
 /* This function was introduced in the Atheme 7.3 development series,
  * and both crypt_string() and gen_salt() were removed. We want to use
  * the new function, but if we're building against older versions,
