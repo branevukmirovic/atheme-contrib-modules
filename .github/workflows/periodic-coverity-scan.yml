@@ -9,12 +9,13 @@ jobs:
   scan:
     environment: CoverityScan
     name: Coverity Scan
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Clone Atheme source code repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
+        persist-credentials: false
         ref: master
         repository: 'atheme/atheme'
         submodules: recursive
@@ -36,13 +37,13 @@ jobs:
           curl                                                          \
           gcc                                                           \
           git                                                           \
-          libargon2-0-dev                                               \
+          libargon2-dev                                                 \
           libcrack2-dev                                                 \
           libgcrypt20-dev                                               \
           libidn11-dev                                                  \
           libldap2-dev                                                  \
           libpasswdqc-dev                                               \
-          libpcre3-dev                                                  \
+          libpcre2-dev                                                  \
           libqrencode-dev                                               \
           libsodium-dev                                                 \
           libssl-dev                                                    \
@@ -68,6 +69,7 @@ jobs:
             --prefix="${HOME}/atheme-build"                             \
             --disable-heap-allocator                                    \
             --enable-contrib                                            \
+            --enable-legacy-pwcrypto                                    \
             --without-libmowgli                                         \
             --with-digest-api-frontend=internal                         \
             --with-rng-api-frontend=internal
