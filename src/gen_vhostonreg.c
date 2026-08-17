@@ -18,6 +18,7 @@ user_add_host(myuser_t *mu)
 	int maxlen1, i;
 	char newhost[COMPAT_HOSTLEN + 1];
 	const char *p;
+	mowgli_node_t *n;
 	bool invalidchar = false;
 
 	maxlen1 = COMPAT_HOSTLEN - 1 - strlen(me.hidehostsuffix);
@@ -55,6 +56,14 @@ user_add_host(myuser_t *mu)
 	mowgli_strlcat(newhost, me.hidehostsuffix, sizeof newhost);
 
 	metadata_add(mu, "private:usercloak", newhost);
+
+	MOWGLI_ITER_FOREACH(n, mu->logins.head)
+	{
+		user_t *u = n->data;
+
+		if (strcmp(u->vhost, newhost))
+			user_sethost(nicksvs.me->me, u, newhost);
+	}
 }
 
 static void
@@ -68,19 +77,27 @@ handle_verify_register(hook_user_req_t *req)
 		return;
 
 	user_add_host(mu);
-
-	MOWGLI_ITER_FOREACH(n, mu->logins.head)
-	{
-		u = n->data;
-		hook_call_user_identify(u); /* XXX */
-	}
 }
 
+#if (CURRENT_ABI_REVISION >= 730000)
+static void
+hook_user_identify(struct hook_user_identify *hdata)
+{
+	user_t *u = hdata->u;
+#else
 static void
 hook_user_identify(user_t *u)
 {
+#endif
+	if (me.hidehostsuffix == NULL)
+		return;
+
+	/* if they have not completed verification, don't do anything */
+	if (u->myuser->flags & MU_WAITAUTH)
+		return;
+
 	/* if they have an existing cloak, don't do anything */
-	if ((metadata_find(u->myuser, "private:usercloak")) || (me.hidehostsuffix == NULL))
+	if ((metadata_find(u->myuser, "private:usercloak")) != NULL)
 		return;
 
 	/* they do not, add one. */

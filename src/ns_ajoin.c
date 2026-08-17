@@ -176,9 +176,16 @@ ns_cmd_ajoin(sourceinfo_t *si, int parc, char *parv[])
 	}
 }
 
+#if (CURRENT_ABI_REVISION >= 730000)
+static void
+ajoin_on_identify(struct hook_user_identify *hdata)
+{
+	user_t *u = hdata->u;
+#else
 static void
 ajoin_on_identify(user_t *u)
 {
+#endif
 	myuser_t *mu = u->myuser;
 	metadata_t *md;
 	char buf[512];
@@ -216,7 +223,6 @@ static command_t ns_ajoin = {
 static void
 mod_init(module_t *const restrict m)
 {
-	hook_add_event("user_identify");
 	hook_add_user_identify(ajoin_on_identify);
 
 	service_named_bind_command("nickserv", &ns_ajoin);
